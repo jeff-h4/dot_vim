@@ -17,6 +17,9 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'tpope/vim-rails'
 Plugin 'bling/vim-airline'
 Plugin 'scrooloose/syntastic'
+Plugin 'kchmck/vim-coffee-script'
+Plugin 'tpope/vim-fugitive'
+
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
 " plugin on GitHub repo
@@ -69,13 +72,20 @@ set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
+let g:syntastic_loc_list_height=4
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 let g:syntastic_javascript_checkers = ['jsxhint']
 "let g:syntastic_ruby_exec = 'ruby2.2.1'
 ""let g:syntastic_eruby_checker = ['ruby']
 ""let g:syntastic_ruby_checker = ['ruby']
-
+" Rubocop Stuff
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_ruby_checkers = ['rubocop']
+let g:syntactic_ruby_rubocop_exec = "/Users/Jeffrey/.rvm/gems/ruby-2.1.4/bin/rubocop"
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " VIM user interface
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -96,6 +106,9 @@ set ruler
 
 " Height of the command bar
 set cmdheight=2
+
+" Yank to System Clipboard
+"set clipboard=unnamed
 
 " A buffer becomes hidden when it is abandoned
 "set hid
@@ -143,15 +156,15 @@ imap <F1> <Esc>
 " Enable syntax highlighting
 syntax enable
 
-" Set terminal colours to 256, instead of default 8.
-" Required for proper colour schemes
-if $COLORTERM == 'gnome-terminal'
-  "set t_Co=256
-  set t_Co=16
-endif
+" " Set terminal colours to 256, instead of default 8.
+" " Required for proper colour schemes
+" if $COLORTERM == 'gnome-terminal'
+"   "set t_Co=256
+"   set t_Co=16
+" endif
 """Colorschemes set in Plugin section
-set background=light
-let g:solarized_termcolors=256
+set background=dark
+"let g:solarized_termcolors=256
 " JEFF NOTE: had to install solarized manually
 colorscheme solarized 
 "colorscheme desert 
@@ -160,7 +173,7 @@ colorscheme solarized
 if has("gui_running")
     set guioptions-=T
     set guioptions+=e
-    set t_Co=256
+"    set t_Co=256
     set guitablabel=%M\ %t
 endif
 
@@ -183,7 +196,7 @@ set expandtab
 " Be smart when using tabs ;)
 "set smarttab
 
-" 1 tab == 4 spaces
+" 1 tab == 2 spaces
 set shiftwidth=2
 set tabstop=2
 
@@ -195,6 +208,8 @@ set tw=500
 "set si "Smart indent
 "set wrap "Wrap lines
 set nowrap
+" Highlight current line
+set cursorline
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Moving around, tabs, windows and buffers
@@ -217,3 +232,28 @@ set laststatus=2
 " Format the status line
 "set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l
 
+""""""""""""""""""""""""""""""
+" => Enabling Selecta Fuzzy Search
+""""""""""""""""""""""""""""""
+
+"Run a given vim command on the results of fuzzy selecting from a given shell
+" command. See usage below.
+function! SelectaCommand(choice_command, selecta_args, vim_command)
+  try
+    let selection = system(a:choice_command . " | selecta " . a:selecta_args)
+  catch /Vim:Interrupt/
+    " Swallow the ^C so that the redraw below happens; otherwise there will be
+    " leftovers from selecta on the screen
+    redraw!
+    return
+  endtry
+  redraw!
+  exec a:vim_command . " " . selection
+endfunction
+
+" Find all files in all non-dot directories starting in the working directory.
+" Fuzzy select one of those. Open the selected file with :e.
+nnoremap <leader>f :call SelectaCommand("find * -type f", "", ":e")<cr>
+
+"let find_cmd = "find . \( -path /var -o -path ./log -o -path ./tmp -o -path './.*' -prune \) -o -type f -print"
+"nnoremap <leader>t :call SelectaCommand(find_cmd, "", ":e")<cr> 
